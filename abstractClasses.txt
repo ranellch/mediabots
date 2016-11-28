@@ -1,0 +1,25 @@
+Rest Controller Abstract Class
+
+Input Interface:
+- Start method (spawns a timer to automatically query)
+- Configure interval
+- Configure automated queries
+- Stop Method
+
+Debug Input Interface:
+- Just a wrapper to call the internal query method
+
+Debug Output Interface:
+- Write your buffer somewhere
+
+Internal:
+- Twitter Search for stuff (user, location, subject, tweet, bio, shit like that, date/time, etc...)
+- Internal Buffer containing raw unorganized data from last query
+- Write Buffer To Database (probably a writer class because it will be non-trivial / need to format for mongoDB)
+
+Writer Abstract Class
+
+Input Interface:
+- insert data into database
+
+
