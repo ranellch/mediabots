@@ -1,5 +1,5 @@
 from TwitterSearch import *
-from time import sleep
+import time
 from configparser import ConfigParser
 
 config = ConfigParser()
@@ -29,20 +29,28 @@ class TwitterSearchQuery:
         self.tso.set_count(100)
         
     def getCurrentSearchURL(self):
-        return self.tso.create_search_url()
+        return self.tso.create_search_url()    
         
     def performSearch(self, buffer):
         buffer.clear()
-        count = 0
-        for tweet in ts.search_tweets_iterable(self.tso):
-            buffer.append(tweet)
-            print (count)
-            count += 1
-        
-        # Make this better. For now sleep every 60 seconds
-        #sleep(60)            
-        
-        
+        try:
+            for tweet in ts.search_tweets_iterable(self.tso):
+                buffer.append(tweet)
+            meta = ts.get_metadata()
+            reset_time = int(meta['x-rate-limit-reset'])
+            secs = reset_time-int(time.time())
+            print("Queries remaining in current window: ",meta['x-rate-limit-remaining'])
+            print("Time remaining: ",int(secs/60),"min ",secs%60,"sec")
+        except TwitterSearchException as e:
+            if e.code == 429: #if query hit rate limit sleep for remaining time in window
+                reset_time = int(ts.get_metadata()['x-rate-limit-reset'])
+                secs = reset_time-int(time.time())
+                #raise here maybe
+                print("Rate limit met - sleeping for ",int(secs/60),"min ",secs%60,"sec") #look into threads later
+                time.sleep(secs)
+            else:
+                print("Exception: %i - %s" % (e.code, e.message))
+                   
 
 tsq = TwitterSearchQuery(ts, tso)
         
@@ -74,6 +82,7 @@ rController = RestController(tsq)
 keywords = ['beer']
 rController.basicSearch(keywords)
 
+print(ts.get_metadata())
 print(rController.getBasicSearchParameters())
-print(rController.firstTweet().encode('utf-8'))
+print(rController.firstTweet())
         
