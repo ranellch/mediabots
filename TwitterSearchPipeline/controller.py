@@ -14,12 +14,17 @@ ts = TwitterSearch(
     access_token_secret = config['TwitterAuth']['access_token_secret']
 )
 
+last_max_id = int(config['TwitterSearchQuery']['last_max_id'])
+
 tso = TwitterSearchOrder()
+if last_max_id != 0:
+    tso.set_since_id(last_max_id)
 
 class TwitterSearchQuery:
     def __init__(self, ts, tso):
         self.ts = ts
         self.tso = tso
+        self.last_max_id = 0
     
     def setBasicSearchParameters(self, keywordList):
         self.tso.remove_all_filters()
@@ -34,8 +39,14 @@ class TwitterSearchQuery:
     def performSearch(self, buffer):
         buffer.clear()
         try:
+            start = True
             for tweet in ts.search_tweets_iterable(self.tso):
                 buffer.append(tweet)
+                if start:
+                    self.last_max_id =  tweet['id'] #get max tweet id for next searches
+                    print(self.last_max_id)
+                    start = False
+            print(tweet['id'])
             meta = ts.get_metadata()
             reset_time = int(meta['x-rate-limit-reset'])
             secs = reset_time-int(time.time())
@@ -74,15 +85,20 @@ class RestController:
         if (self.buffer):
             return self.buffer[0]
         
-        
+    def updateConfig(self,config,path):
+        print(self.tsq.last_max_id)
+        config['TwitterSearchQuery']['last_max_id'] = str(self.tsq.last_max_id)
+        with open(path, 'w') as configfile:
+            config.write(configfile)   
 
         
 rController = RestController(tsq)
 
 keywords = ['beer']
 rController.basicSearch(keywords)
+rController.updateConfig(config,'../bot.config')
 
-print(ts.get_metadata())
+#print(ts.get_metadata())
 print(rController.getBasicSearchParameters())
 print(rController.firstTweet())
         
