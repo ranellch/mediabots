@@ -13,11 +13,11 @@ config.read('../bot.config')
 
 
 class TwitterSearchQuery:
-    def __init__(self, ts, dict):
+    def __init__(self, ts, searchParams):
         self.ts = ts
         self.tso = TwitterSearchOrder()
         self.last_max_id = 0
-        self.collection_name = dict['collection']
+        self.collection_name = searchParams.getCollectionName()
         self.tso.remove_all_filters()
         self.tso.set_language('en')
         self.tso.set_include_entities(False)
@@ -25,9 +25,9 @@ class TwitterSearchQuery:
         self.buffer = ['default']
         self.queriesAllowed = 10
         
-        for key in dict.keys():
+        for key in searchParams.getDict().keys():
             if (key == "keywords"):
-                self.tso.set_keywords(dict["keywords"])
+                self.tso.set_keywords(searchParams.getDict()[key])
             # add more parameters here...create a global resource for all possible parameters
 
     def setSinceId(self, last_max_id):
@@ -81,14 +81,25 @@ class RestController:
             access_token_secret = config['TwitterAuth']['access_token_secret'])
         self.writerList = []
         self.tsqList = []
+        self.sController = SearchDBController(config)
         
-    def addNewTsqFromDatabaseDictionary(self, dictInput):
-        self.tsqList.append(TwitterSearchQuery(self.ts, dictInput))
+    def addNewSearchQueryFromParams(self, searchParams):
+        # if search parameters are unique and complete, add them to the database search controller
+        self.sController.addSearchParams(searchParams)
         
+        # add the unique twitter search
+        self.tsqList.append(TwitterSearchQuery(self.ts, searchParams))
+    
+    # debug function            
     def getTweetsFromCollection(self, collection_name):
         tsq = self._findTsqFromCollectionName(collection_name)
         return tsq.buffer
-    
+        
+    def _moveTweetsFromTsqResultsToDatabase(self, tsq):
+        if (tsq.buffer):
+            print(tsq.collection_name)
+            self.sController.writeTweets(tsq.collection_name, tsq.buffer)
+        
     # debug function
     def basicSearchAll(self):
         self._updateQueriesAllowed()
@@ -97,6 +108,7 @@ class RestController:
                 print("Not enough queries remaining")
                 break
             tsq.performSearch()
+            self._moveTweetsFromTsqResultsToDatabase(tsq)
             
     # debug function
     def basicSearch(self, collection_name):
@@ -127,20 +139,29 @@ class RestController:
                     
             # remove this when we are done experimenting
             tsq.queriesAllowed /= 10
-
+    
+    # debug function
+    def clearDBCollections(self):
+        for col in self.sController.getAllCollectionNames():
+            if(col == "searchlookup"):
+                self.sController.clearCollection(col)
+            else:
+                self.sController.dropCollection(col)
+            
+            
 class SearchDBController:
-    def __init__(self,config):
+    def __init__(self, config):
         self.config = config    
         client = MongoClient(config['AWS']['server'],int(config['AWS']['DBport']))
         self.db = client.Searches
         self.db.authenticate(config['MongoDB']['search_user'], config['MongoDB']['search_pwd']) 
+        self.search_lookup_collection = self.db["searchlookup"] # collection that represents a table of all search parameters
         
     def readSearchParamsFromCollectionName(self, collection_name):
-        collection = self.db.searchlookup
-        searchParams = collection.find_one({"collection":collection_name})
+        searchParams = self.search_lookup_collection.find_one({"collection":collection_name})
         return searchParams
         
-    def writeTweets(self,collection_name,tweet_buffer):
+    def writeTweets(self, collection_name, tweet_buffer):
         collection = self.db[collection_name]
         collection.insert_many(tweet_buffer)
     
@@ -156,12 +177,10 @@ class SearchDBController:
             print("Collection name not unique")
             return None
             
-        collection = self.db.searchlookup
-        collection.insert_one(params)
+        self.search_lookup_collection.insert_one(params)
     
     def getAllCollectionNames(self):
         return self.db.collection_names()
-         
     
     #debug function
     def readFirstTweet(self,collection_name):
@@ -171,11 +190,19 @@ class SearchDBController:
         else:
             return None
     
-    #WARNING -- deletes all tweets in collection!!!!        
+    #WARNING -- clears all tweets in collection!!!!        
     def clearCollection(self,collection_name):
-        ans = input("Delete all? Y/N \n").strip().lower()
+        print (collection_name)
+        ans = input("Clear collection? Y/N \n").strip().lower()
         if (ans=='y'):
             self.db[collection_name].delete_many({})
+    
+    def dropCollection(self, collection_name):
+        print (collection_name)
+        ans = input("Drop collection? Y/N \n").strip().lower()
+        if (ans=='y'):
+            self.db[collection_name].drop()
+        
             
 class SearchParameters:
     def __init__(self):
@@ -210,39 +237,28 @@ class SearchParameters:
     def getCollectionName(self):
         return self.dict['collection']
         
-        
-sController = SearchDBController(config)
-
-# TODO: remove collections, not just clear
-for col in sController.getAllCollectionNames():
-    sController.clearCollection(col)
             
 rController = RestController(config)
 
+rController.clearDBCollections()
+
+print(rController.sController.getAllCollectionNames())
+
 #Construct a search params
-collectionName = "AustinBeer5"
+collectionName = "AustinBeer"
 params = SearchParameters()
 params.addKeywords(['beer'])
 params.addLocation('austin')
 params.addCollectionName(collectionName)
 params.addSinceId(0)
 
-sController.addSearchParams(params)
-print(sController.readSearchParamsFromCollectionName(collectionName))
 
-# add a new search query to the controller
-rController.addNewTsqFromDatabaseDictionary(sController.readSearchParamsFromCollectionName(collectionName));
-print("added tsq")
-
+rController.addNewSearchQueryFromParams(params)
 rController.basicSearchAll()
 
-# put in database
-sController.writeTweets(collectionName, rController.getTweetsFromCollection(collectionName))
-print("wrote tweets")
-
+# Test that our Database and our Tsq Buffers are the same
 tweetFromController = rController.firstTweetFromCollectionName(collectionName)
-tweetFromDB = sController.readFirstTweet(collectionName)
-print("comparing first tweets")
+tweetFromDB = rController.sController.readFirstTweet(collectionName)
 
 print (tweetFromController == tweetFromDB)
 
