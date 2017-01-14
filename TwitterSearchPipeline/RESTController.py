@@ -41,7 +41,8 @@ class RestController:
                 self.searchParametersLog.append("Write Failure")
                 self.writeSearchLog('./')
                 raise
-            self.searchParametersLog.append("Success: %d Tweets Written" % len(tsq.buffer)) 
+            self.searchParametersLog.append("Success - %s: %d Tweets Written" 
+                                                % (tsq.collection_name,len(tsq.buffer))) 
                    
     #---Debug methods----         
     def getTweetsFromCollection(self, collection_name):
@@ -61,8 +62,9 @@ class RestController:
                 self.DBController.dropCollection(col)
                 
     def writeSearchLog(self,path):
-        with open(path+'searches.log', mode='wt', encoding='utf-8') as logfile:
-             logfile.write('\n'.join(str(entry) for entry in self.searchParametersLog))         
+        with open(path+'searches.log', mode='a', encoding='utf-8') as logfile:
+             logfile.write('\n'.join(str(entry) for entry in self.searchParametersLog))
+        self.searchParametersLog = []         
      
     #---Private methods----                        
     def _readParamsFromDatabase(self, collection_names):   

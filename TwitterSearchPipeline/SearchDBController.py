@@ -28,7 +28,8 @@ class SearchDBController:
         
         params = searchParams.getDict()
         
-        if (params['collection'] in self.db.collection_names()):
+        if (params['collection'] in self.db.collection_names() or 
+                bool(self.search_lookup_collection.find_one({'collection': params['collection']}))):
             print("Collection name not unique")
             return None
             
