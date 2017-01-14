@@ -53,6 +53,7 @@ tweetFromDB = rController.DBController.readFirstTweet(collectionName2)
 print (tweetFromController == tweetFromDB)
 
 rController.basicSearch([collectionName])
+rController.writeSearchLog('./')
 
 
         

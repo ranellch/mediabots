@@ -61,4 +61,4 @@ class TwitterSearchQuery:
                 print("Rate limit met by tsq",self.collection_name, "- must wait for ",int(secs/60),"min ",secs%60,"sec")
                 raise e
             else:
-                raise e
+                raise
