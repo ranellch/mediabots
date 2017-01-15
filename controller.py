@@ -1,21 +1,22 @@
 from TwitterSearchPipeline import RestController
 from TwitterSearchPipeline import SearchParameters
 from configparser import ConfigParser
+import os
 
 config = ConfigParser()
 config.read('bot.config')
 
 # it's about time to create a TwitterSearch object with our secret tokens
 # information from C.Ranella botnet1 app on twitter (he has actual access but these codes will work)
-       
+
 
 #Start of controller
 #-----
 
-            
 
-        
-            
+
+
+
 rController = RestController(config)
 
 rController.clearDBCollections()
@@ -27,14 +28,14 @@ print(rController.DBController.getAllCollectionNames())
 collectionName = "AustinBeer"
 params = SearchParameters()
 params.addKeywords(['beer'])
-params.addLocation('austin')
+params.addLocation('Austin Texas', 50)
 params.addCollectionName(collectionName)
 rController.addNewSearchParams(params)
 
 collectionName2 = "AustinLiveMusic"
 params = SearchParameters()
 params.addKeywords(['Live', 'Music'])
-params.addLocation('austin')
+params.addLocation('Austin Texas',50)
 params.addCollectionName(collectionName2)
 rController.addNewSearchParams(params)
 
@@ -52,8 +53,8 @@ tweetFromController = rController.firstTweetFromCollectionName(collectionName2)
 tweetFromDB = rController.DBController.readFirstTweet(collectionName2)
 print (tweetFromController == tweetFromDB)
 
+os.remove("searches.log")
 rController.basicSearch([collectionName])
 rController.writeSearchLog('./')
 
-
-        
+print(rController.DBController.readFirstTweet("AustinLiveMusic"))

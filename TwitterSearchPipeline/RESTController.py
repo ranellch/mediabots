@@ -14,20 +14,20 @@ class RestController:
         self.searchParametersLog = []
         self.tsqList = []
         self.DBController = SearchDBController(config)
-       
-      
-    #---Main public methods----    
+
+
+    #---Main public methods----
     def addNewSearchParams(self, searchParams):
         # if search parameters are unique and complete, add them to the database search controller
         self.DBController.addSearchParams(searchParams)
-        
+
     def basicSearch(self,collection_names):
         self._clearTsqList()
         self._readParamsFromDatabase(collection_names)
         self._updateQueriesAllowed()
         for tsq in self.tsqList:
             if tsq.queriesAllowed == 0:
-                self.searchParametersLog.append("Failure") 
+                self.searchParametersLog.append("Failure")
                 print("Not enough queries remaining")
                 break
             try:
@@ -41,55 +41,55 @@ class RestController:
                 self.searchParametersLog.append("Write Failure")
                 self.writeSearchLog('./')
                 raise
-            self.searchParametersLog.append("Success - %s: %d Tweets Written" 
-                                                % (tsq.collection_name,len(tsq.buffer))) 
-                   
-    #---Debug methods----         
+            self.searchParametersLog.append("Success - %s: %d Tweets Written"
+                                                % (tsq.collection_name,len(tsq.buffer)))
+
+    #---Debug methods----
     def getTweetsFromCollection(self, collection_name):
         tsq = self._findTsqFromCollectionName(collection_name)
         return tsq.buffer
-                     
+
     def firstTweetFromCollectionName(self, collection_name):
         tsq = self._findTsqFromCollectionName(collection_name)
         if (tsq):
             return tsq.buffer[0]
-            
+
     def clearDBCollections(self):
         for col in self.DBController.getAllCollectionNames():
             if(col == "searchlookup"):
                 self.DBController.clearCollection(col)
             else:
                 self.DBController.dropCollection(col)
-                
+
     def writeSearchLog(self,path):
         with open(path+'searches.log', mode='a', encoding='utf-8') as logfile:
              logfile.write('\n'.join(str(entry) for entry in self.searchParametersLog))
              logfile.write('\n')
-        self.searchParametersLog = []         
-     
-    #---Private methods----                        
-    def _readParamsFromDatabase(self, collection_names):   
+        self.searchParametersLog = []
+
+    #---Private methods----
+    def _readParamsFromDatabase(self, collection_names):
         # add the unique twitter search from database
         for name in collection_names:
             params = self.DBController.readSearchParamsFromCollectionName(name)
-            self.searchParametersLog.append(params)
             self.tsqList.append(TwitterSearchQuery(self.ts, params))
-       
+            self.searchParametersLog.append(params)
+
     def _moveResultsToDatabase(self, tsq):
         if (tsq.buffer):
             self.DBController.writeTweets(tsq.collection_name, tsq.buffer)
             self.DBController.writeSinceId(tsq.collection_name, tsq.getSinceId())
-    
+
     def _clearTsqList(self):
         self.tsqList = []
 
-        
+
     def _findTsqFromCollectionName(self, collection_name):
         for tsq in self.tsqList:
             if (tsq.collection_name == collection_name):
                 return tsq
         return None
-    
+
     def _updateQueriesAllowed(self):
         for tsq in self.tsqList:
             try:
@@ -99,8 +99,6 @@ class RestController:
                     tsq.queriesAllowed = 180 / len(self.tsqList)
                 else:
                     raise e
-                    
+
             # remove this when we are done experimenting
             tsq.queriesAllowed /= 10
-            
-            

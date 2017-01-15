@@ -13,24 +13,27 @@ class TwitterSearchQuery:
         self.tso.set_count(100)
         self.buffer = ['default']
         self.queriesAllowed = 10
-        
+
         for key in paramsDict.keys():
             if (key == "keywords"):
                 self.tso.set_keywords(paramsDict[key])
             if (key == "since_id"):
                 self.setSinceId(paramsDict[key])
+            if (key == "geocode"):
+                self.tso.set_geocode(paramsDict[key]['lat'],paramsDict[key]['lon'],
+                                        paramsDict[key]['rad'],imperial_metric=False)
             # add more parameters here...create a global resource for all possible parameters
 
     def setSinceId(self, last_max_id):
         self.last_max_id = last_max_id
         self.tso.set_since_id(last_max_id)
-    
+
     def getSinceId(self):
         return self.last_max_id
-        
+
     def getCurrentSearchURL(self):
-        return self.tso.create_search_url()  
-        
+        return self.tso.create_search_url()
+
     def performSearch(self):
         self.buffer.clear()
         try:
