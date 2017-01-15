@@ -64,6 +64,7 @@ class RestController:
     def writeSearchLog(self,path):
         with open(path+'searches.log', mode='a', encoding='utf-8') as logfile:
              logfile.write('\n'.join(str(entry) for entry in self.searchParametersLog))
+             logfile.write('\n')
         self.searchParametersLog = []         
      
     #---Private methods----                        
