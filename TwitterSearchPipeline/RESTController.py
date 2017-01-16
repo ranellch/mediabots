@@ -99,6 +99,3 @@ class RestController:
                     tsq.queriesAllowed = 180 / len(self.tsqList)
                 else:
                     raise e
-
-            # remove this when we are done experimenting
-            tsq.queriesAllowed /= 10
