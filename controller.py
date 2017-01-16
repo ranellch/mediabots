@@ -1,5 +1,3 @@
-#!~/.virtualenvs/mediabots/bin/python3
-
 from TwitterSearchPipeline import RestController
 from TwitterSearchPipeline import SearchParameters
 from configparser import ConfigParser
@@ -55,7 +53,10 @@ tweetFromController = rController.firstTweetFromCollectionName(collectionName2)
 tweetFromDB = rController.DBController.readFirstTweet(collectionName2)
 print (tweetFromController == tweetFromDB)
 
-os.remove("searches.log")
+try:
+    os.remove("searches.log")
+except OSError:
+    pass
 rController.basicSearch([collectionName])
 rController.writeSearchLog('./')
 
