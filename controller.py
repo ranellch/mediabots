@@ -6,11 +6,6 @@ import os
 config = ConfigParser()
 config.read('bot.config')
 
-try:
-    os.remove("searches.log")
-except OSError:
-    pass
-
 rController = RestController(config)
 
 collectionNames = ["AustinBeer", "AustinLiveMusic", "AustinHiking", "AustinCoffeeShops"]
