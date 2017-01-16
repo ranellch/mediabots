@@ -1,3 +1,5 @@
+#!~/.virtualenvs/mediabots/bin/python3
+
 from TwitterSearchPipeline import RestController
 from TwitterSearchPipeline import SearchParameters
 from configparser import ConfigParser
