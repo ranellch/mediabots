@@ -3,6 +3,7 @@ from TwitterSearchPipeline import RestController
 from configparser import ConfigParser
 import os
 
+os.chdir('/home/ubuntu/mediabots/')
 config = ConfigParser()
 config.read('bot.config')
 
