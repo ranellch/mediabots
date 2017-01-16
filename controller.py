@@ -1,6 +1,7 @@
-#!~/.virtualenvs/mediabots/bin/python3
+#!/home/ubuntu/.virtualenvs/mediabots/bin/python3
 from TwitterSearchPipeline import RestController
 from TwitterSearchPipeline import SearchParameters
+from TwitterSearchPipeline  import PeriodicScheduler
 from configparser import ConfigParser
 import os
 
@@ -10,22 +11,20 @@ config.read('bot.config')
 # it's about time to create a TwitterSearch object with our secret tokens
 # information from C.Ranella botnet1 app on twitter (he has actual access but these codes will work)
 
-
 #Start of controller
-#-----
+#----
+try:
+    os.remove("searches.log")
+except OSError:
+    pass
 
-
-
-
-
+scheduler = PeriodicScheduler()
 rController = RestController(config)
-
 rController.clearDBCollections()
 
-print(rController.DBController.getAllCollectionNames())
+# print(rController.DBController.getAllCollectionNames())
 
-# Construct a search params
-# TODO: make locations work
+# Construct searches
 collectionName = "AustinBeer"
 params = SearchParameters()
 params.addKeywords(['beer'])
@@ -41,24 +40,22 @@ params.addCollectionName(collectionName2)
 rController.addNewSearchParams(params)
 
 collectionNames = [collectionName, collectionName2]
+scheduler.scheduleTaskInSeconds(60, rController.basicSearch, collectionNames)
+schedule.executeTaskLoop()
+
+# rController.basicSearch(collectionNames)
+#
+# # Test that our Database and our Tsq Buffers are the same
+# tweetFromController = rController.firstTweetFromCollectionName(collectionName)
+# tweetFromDB = rController.DBController.readFirstTweet(collectionName)
+# print (tweetFromController == tweetFromDB)
+#
+# tweetFromController = rController.firstTweetFromCollectionName(collectionName2)
+# tweetFromDB = rController.DBController.readFirstTweet(collectionName2)
+# print (tweetFromController == tweetFromDB)
 
 
-rController.basicSearch(collectionNames)
+# rController.basicSearch([collectionName])
+# rController.writeSearchLog('./')
 
-# Test that our Database and our Tsq Buffers are the same
-tweetFromController = rController.firstTweetFromCollectionName(collectionName)
-tweetFromDB = rController.DBController.readFirstTweet(collectionName)
-print (tweetFromController == tweetFromDB)
-
-tweetFromController = rController.firstTweetFromCollectionName(collectionName2)
-tweetFromDB = rController.DBController.readFirstTweet(collectionName2)
-print (tweetFromController == tweetFromDB)
-
-try:
-    os.remove("searches.log")
-except OSError:
-    pass
-rController.basicSearch([collectionName])
-rController.writeSearchLog('./')
-
-print(rController.DBController.readFirstTweet("AustinLiveMusic"))
+# print(rController.DBController.readFirstTweet("AustinLiveMusic"))
