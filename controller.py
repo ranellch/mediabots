@@ -40,7 +40,12 @@ params.addCollectionName(collectionName2)
 rController.addNewSearchParams(params)
 
 collectionNames = [collectionName, collectionName2]
-scheduler.scheduleTaskInSeconds(60, rController.basicSearch, collectionNames)
+
+def rControllerRunner(collection_names, logPath):
+    rController.basicSearch(collection_names)
+    rController.writeSearchLog(logPath)
+
+scheduler.scheduleTaskInSeconds(60, rControllerRunner, (collectionNames,'./'))
 scheduler.executeTaskLoop()
 
 # rController.basicSearch(collectionNames)
