@@ -16,7 +16,7 @@ class TwitterSearchQuery:
 
         for key in paramsDict.keys():
             if (key == "keywords"):
-                self.tso.set_keywords(paramsDict[key])
+                self.tso.set_keywords(paramsDict[key], or_operator = True)
             if (key == "since_id"):
                 self.setSinceId(paramsDict[key])
             if (key == "geocode"):
