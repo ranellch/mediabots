@@ -41,7 +41,7 @@ rController.addNewSearchParams(params)
 
 collectionNames = [collectionName, collectionName2]
 scheduler.scheduleTaskInSeconds(60, rController.basicSearch, collectionNames)
-schedule.executeTaskLoop()
+scheduler.executeTaskLoop()
 
 # rController.basicSearch(collectionNames)
 #
