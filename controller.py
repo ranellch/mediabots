@@ -1,4 +1,8 @@
 #!/home/ubuntu/.virtualenvs/mediabots/bin/python3
+
+# Intended to be run as a cron job. InitializeSearchParameters.py needs to have
+#  already populated the database with search parameters.
+
 from TwitterSearchPipeline import RestController
 from configparser import ConfigParser
 import os

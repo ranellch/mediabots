@@ -2,6 +2,7 @@ from TwitterSearch import *
 from .TwitterSearchQuery import TwitterSearchQuery
 from .SearchParameters import SearchParameters
 from .SearchDBController import SearchDBController
+from datetime import datetime
 
 class RestController:
     def __init__(self, config):
@@ -41,8 +42,8 @@ class RestController:
                 self.searchParametersLog.append("Write Failure")
                 self.writeSearchLog('./')
                 raise
-            self.searchParametersLog.append("Success - %s: %d Tweets Written"
-                                                % (tsq.collection_name,len(tsq.buffer)))
+            self.searchParametersLog.append("Success - %s: %d Tweets Written at %s"
+                                                % (tsq.collection_name, len(tsq.buffer), str(datetime.now() )))
 
     #---Debug methods----
     def getTweetsFromCollection(self, collection_name):
