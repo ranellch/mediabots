@@ -45,7 +45,8 @@ def rControllerRunner(collection_names, logPath):
     rController.basicSearch(collection_names)
     rController.writeSearchLog(logPath)
 
-scheduler.scheduleTaskInSeconds(60, rControllerRunner, (collectionNames,'./'))
+args = (collectionNames, './')
+scheduler.scheduleTaskInSeconds(60, rControllerRunner, *args)
 scheduler.executeTaskLoop()
 
 # rController.basicSearch(collectionNames)
