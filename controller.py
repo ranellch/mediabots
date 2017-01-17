@@ -5,6 +5,7 @@
 
 from TwitterSearchPipeline import RestController
 from configparser import ConfigParser
+from crontab import CronTab
 import os
 
 os.chdir('/home/ubuntu/mediabots/')
@@ -18,5 +19,10 @@ collectionNames = ["AustinBeer", "AustinLiveMusic", "AustinHiking", "AustinCoffe
 def rControllerRunner(collection_names, logPath):
     rController.basicSearch(collection_names)
     rController.writeSearchLog(logPath)
+#    cron = CronTab(user=True)
+#    iter = cron.find_command('/home/ubuntu/mediabots/controller.py')
+#    for job in iter:
+#        job.enable(False)
+#    cron.write()    
 
 rControllerRunner(collectionNames, './')
