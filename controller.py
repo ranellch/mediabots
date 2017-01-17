@@ -8,7 +8,7 @@ from configparser import ConfigParser
 from crontab import CronTab
 import os
 
-os.chdir('/home/ubuntu/mediabots/')
+#os.chdir('/home/ubuntu/mediabots/')
 config = ConfigParser()
 config.read('bot.config')
 
@@ -16,13 +16,19 @@ rController = RestController(config)
 
 collectionNames = ["AustinBeer", "AustinLiveMusic", "AustinHiking", "AustinCoffeeShops"]
 
-def rControllerRunner(collection_names, logPath):
-    rController.basicSearch(collection_names)
+def rControllerRunner(collection_names, logPath, limit):
+    names_to_run = []
+    for name in collection_names:
+        if (rController.DBController.getDocumentCountFromCollectionName(name) < limit):
+            names_to_run.append(name)
+    if not names_to_run:
+        cron = CronTab(user=True)
+        iter = cron.find_command('/home/ubuntu/mediabots/controller.py')
+        for job in iter:
+           job.enable(False)
+        cron.write()
+        return
+    rController.basicSearch(names_to_run)
     rController.writeSearchLog(logPath)
-#    cron = CronTab(user=True)
-#    iter = cron.find_command('/home/ubuntu/mediabots/controller.py')
-#    for job in iter:
-#        job.enable(False)
-#    cron.write()    
 
-rControllerRunner(collectionNames, './')
+rControllerRunner(collectionNames, './', 100000)

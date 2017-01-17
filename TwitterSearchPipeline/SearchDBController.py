@@ -37,7 +37,10 @@ class SearchDBController:
 
     def getAllCollectionNames(self):
         return self.db.collection_names()
-    
+
+    def getDocumentCountFromCollectionName(self,collection_name):
+        return self.db[collection_name].count()
+
     #debug function
     def readFirstTweet(self,collection_name):
         if (collection_name in self.db.collection_names()):
