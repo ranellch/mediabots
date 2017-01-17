@@ -8,7 +8,7 @@ from configparser import ConfigParser
 from crontab import CronTab
 import os
 
-#os.chdir('/home/ubuntu/mediabots/')
+os.chdir('/home/ubuntu/mediabots/')
 config = ConfigParser()
 config.read('bot.config')
 
