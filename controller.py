@@ -16,17 +16,20 @@ rController = RestController(config)
 
 collectionNames = ["AustinBeer", "AustinLiveMusic", "AustinHiking", "AustinCoffeeShops"]
 
+def killController():
+    cron = CronTab(user=True)
+    iter = cron.find_command('/home/ubuntu/mediabots/controller.py')
+    for job in iter:
+       job.enable(False)
+    cron.write()
+
 def rControllerRunner(collection_names, logPath, limit):
     names_to_run = []
     for name in collection_names:
         if (rController.DBController.getDocumentCountFromCollectionName(name) < limit):
             names_to_run.append(name)
     if not names_to_run:
-        cron = CronTab(user=True)
-        iter = cron.find_command('/home/ubuntu/mediabots/controller.py')
-        for job in iter:
-           job.enable(False)
-        cron.write()
+        killController()
         return
     rController.basicSearch(names_to_run)
     rController.writeSearchLog(logPath)
